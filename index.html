@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Movies Review</title>
+
+    <style>
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+        margin-top: 2ch;
+      }
+
+      .main-body-cointainer {
+        background-color: #f8f8f8;
+        margin-top: 6px;
+      }
+
+      .main-heading {
+        font-size: 2rem;
+        color: #333;
+        margin: 1rem 0;
+      }
+
+      form label {
+        display: block;
+        margin-bottom: 0.5rem;
+      }
+
+      form input {
+        display: block;
+        width: 100%;
+        padding: 0.5rem;
+        border: none;
+        border-radius: 0.25rem;
+        margin-bottom: 1rem;
+        background-color: #fff;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+      }
+
+      form input[type="number"] {
+        width: 4rem;
+      }
+
+      form button {
+        display: block;
+        padding: 0.5rem 1rem;
+        border: none;
+        border-radius: 0.25rem;
+        background-color: #333;
+        color: #fff;
+        cursor: pointer;
+        transition: background-color 0.2s ease-in-out;
+      }
+
+      form button:hover {
+        background-color: #555;
+      }
+
+      .btnclass {
+        display: block;
+        padding: 0.5rem 1rem;
+        border: none;
+        border-radius: 0.25rem;
+        background-color: #333;
+        color: #fff;
+        cursor: pointer;
+        transition: background-color 0.2s ease-in-out;
+      }
+
+      .btnclass:hover {
+        background-color: #555;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 1rem;
+      }
+
+      table th,
+      table td {
+        padding: 0.5rem;
+        text-align: left;
+        border-bottom: 1px solid #ccc;
+      }
+
+      table th {
+        background-color: #eee;
+        font-weight: normal;
+      }
+
+      table th:last-child,
+      table td:last-child {
+        text-align: center;
+      }
+
+      /*  */
+
+      table {
+        border-spacing: 0;
+        width: 100%;
+        border: 1px solid #ddd;
+      }
+
+      th,
+      td {
+        text-align: left;
+        padding: 16px;
+      }
+
+      tr:nth-child(even) {
+        background-color: #f2f2f2;
+      }
+
+      /* Set edit and delete button styles */
+      table .edit-btn,
+      table .delete-btn {
+        display: inline-block;
+        padding: 0.5rem;
+        border: none;
+        border-radius: 0.25rem;
+        background-color: #333;
+        color: #fff;
+        cursor: pointer;
+        transition: background-color 0.2s ease-in-out;
+      }
+
+      table .edit-btn:hover,
+      table .delete-btn:hover {
+        background-color: #555;
+      }
+
+      .container {
+        margin-left: 30ch;
+        height: auto;
+        width: 150ch;
+        background: #fff;
+        padding: 25px;
+        border-radius: 5px;
+        position: absolute;
+        box-shadow: -2px 2px 12px rgba(0, 0, 0, 0.3);
+      }
+    </style>
+  </head>
+
+  <body class="main-body-cointainer">
+    <div class="container">
+      <h1 class="main-heading">Movies Review</h1>
+      <form>
+        <button class="btnclass" onclick="sortTable()">Sort</button>
+      </form>
+
+      <form>
+        <label for="movie-name">Movie Name:</label>
+        <input type="text" id="movieName" />
+        <label for="rating-score">Rating Score:</label>
+        <input type="number" id="ratingScore" min="0" max="5" />
+        <label for="director-name">Director's Name:</label>
+        <input type="text" id="directorName" />
+        <label for="release-date">Release Date:</label>
+        <input type="date" id="releaseDate" />
+        <button type="button" id="btn">Add Movie</button>
+      </form>
+      <table border="1" id="movieData">
+        <thead>
+          <tr>
+            <th onclick="sortTable('movie-name')">Movie Name</th>
+            <th onclick="sortTable('rating-score')">Rating Score</th>
+            <th onclick="sortTable('director-name')">Director's Name</th>
+            <th onclick="sortTable('release-date')">Release Date</th>
+            <!-- <th>movie Name</th>
+            <th>movie rating</th>
+            <th>dIRECTOR Name</th>
+            <th>RELEASE</th>
+            <th></th> -->
+          </tr>
+        </thead>
+
+        <tbody id="movies-list"></tbody>
+      </table>
+
+      <!-- <div class="btnclass"> -->
+      <form>
+        <button type="button" id="btn-2">Edit Movie</button>
+        <button type="button" id="btn-3">Delete Movie</button>
+      </form>
+      <!-- </div> -->
+      <br /><br /><br />
+    </div>
+
+    <script type="module">
+      // Import the functions you need from the SDKs you need
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/9.21.0/firebase-app.js";
+      import { getAnalytics } from "https://www.gstatic.com/firebasejs/9.21.0/firebase-analytics.js";
+      import {
+        getFirestore,
+        onSnapshot,
+        query,
+        collection,
+        orderBy,
+        addDoc,
+      } from "https://www.gstatic.com/firebasejs/9.21.0/firebase-firestore.js";
+      // TODO: Add SDKs for Firebase products that you want to use
+      // https://firebase.google.com/docs/web/setup#available-libraries
+
+      // Your web app's Firebase configuration
+      // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+      const firebaseConfig = {
+        apiKey: "AIzaSyB57uLhLboCqpuBzM1uk6ktWGIqZuUeeb4",
+        authDomain: "movies-rating-a4a02.firebaseapp.com",
+        projectId: "movies-rating-a4a02",
+        storageBucket: "movies-rating-a4a02.appspot.com",
+        messagingSenderId: "241668463930",
+        appId: "1:241668463930:web:bce92222b2a4659e3f4403",
+        measurementId: "G-KXXZBJWEST",
+      };
+
+      // Initialize Firebase
+      const app = initializeApp(firebaseConfig);
+      console.log(app, "app");
+      //   const analytics = getAnalytics(app);
+      //   console.log(analytics, "analytics");
+      const db = getFirestore(app);
+      console.log(db, "db");
+
+      const q = query(collection(db, "list"), orderBy("movie_name"));
+      console.log(q, "q");
+
+      onSnapshot(q, (data) => {
+        let doc = "";
+        data.forEach((item) => {
+          doc += `<tr>
+                  <td>${item.data().movie_name}</td>
+                  <td>${item.data().rating}</td>
+                  <td>${item.data().director_name}</td>
+                  <td>${item.data().release_date}</td>
+                  </tr>`;
+        });
+
+        document.querySelector("#movies-list").innerHTML = doc;
+      });
+
+      document.querySelector("btn-2").addEventListener("click", () => {
+        let movie_name = document.querySelector("#movieName").value;
+        let rating = document.querySelector("#ratingScore").value;
+        let director_name = document.querySelector("#directorName").value;
+        let date = document.querySelector("#releaseDate").value;
+        addDoc(update(db, "list"), {
+          movie_name: movie_name,
+          rating: rating,
+          director_name: director_name,
+          release_date: date,
+        });
+      });
+
+      function sortTable() {
+        var table, rows, switching, i, x, y, shouldSwitch;
+        table = document.getElementById("myTable");
+        switching = true;
+
+        while (switching) {
+          switching = false;
+          rows = table.rows;
+
+          for (i = 1; i < rows.length - 1; i++) {
+            shouldSwitch = false;
+
+            x = rows[i].getElementsByTagName("TD")[0];
+            y = rows[i + 1].getElementsByTagName("TD")[0];
+
+            if (x.innerHTML.toLowerCase() > y.innerHTML.toLowerCase()) {
+              shouldSwitch = true;
+              break;
+            }
+          }
+          if (shouldSwitch) {
+            rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
+            switching = true;
+          }
+        }
+      }
+    </script>
+  </body>
+</html>
